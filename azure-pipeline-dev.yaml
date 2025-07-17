@@ -1,0 +1,43 @@
+trigger: #none  # Trigger on pipeline name 'pipelinetest'
+  - main
+# - pipelinetest
+# - tmp/pipeenv
+##
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  # Replace with the name of the var group containing your .env content
+  # Name of the ZIP archive to create
+  zipFileName: 'project.zip'
+  #publicurl: "https://web-backenddev-cont-001-ajath8a5beh9eycz.westeurope-01.azurewebsites.net/"
+  NODE_OPTIONS: --max_old_space_size=4096
+
+stages:
+  - stage: Docker_build
+    displayName: Build docker
+    jobs:
+      - job: Build
+        pool:
+          name: Azure Pipelines
+          vmImage: ubuntu-latest
+        steps:
+          - script: |
+              ls -la
+
+          - task: Docker@2
+            inputs:
+              containerRegistry: 'conttoyotastg'
+              repository: 'intdash-dev'
+              command: 'build'
+              arguments: ""
+              Dockerfile: './Docker/Dockerfile'
+              buildContext: ''
+              tags: |
+                $(Build.BuildId)
+                latest       
+          - task: Docker@2
+            inputs:
+              containerRegistry: 'conttoyotastg'
+              repository: 'intdash-dev'
+              command: 'push'

@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Running pre-commit checks..."
+
+# Stash changes not being committed
+git stash push --keep-index --include-untracked
+
+# Try to build the project
+echo "Running Next.js build check..."
+npm run build
+BUILD_STATUS=$?
+
+# Restore changes
+git stash pop
+
+# If build failed, prevent commit
+if [ $BUILD_STATUS -ne 0 ]; then
+  echo "❌ Build failed. Fix the errors before committing."
+  exit 1
+fi
+
+# Run lint-staged for other checks
+echo "Running linting checks..."
+npx lint-staged
